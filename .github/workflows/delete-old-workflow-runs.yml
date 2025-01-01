@@ -1,15 +1,19 @@
 name: Delete old workflow runs
+
 on:
+  workflow_dispatch:   # 允许手动触发
   schedule:
-    - cron: '0 0 1 * *'
-# Run monthly, at 00:00 on the 1st day of month.
+    - cron: '0 0 1 * *'   # Run monthly, at 00:00 on the 1st day of month.
 
 jobs:
   del_runs:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
     steps:
-      - name: 删除 workflow runs
-        uses: JuvenileQ/delete-workflow-runs@main
+      - name: Delete workflow runs
+        uses: yxdz2020/delete-workflow-runs@v20250101
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
