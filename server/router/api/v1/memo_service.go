@@ -243,10 +243,8 @@ func (s *APIV1Service) UpdateMemo(ctx context.Context, request *v1pb.UpdateMemoR
 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 	}
 
-	currentTs := time.Now().Unix()
 	update := &store.UpdateMemo{
-		ID:        id,
-		UpdatedTs: &currentTs,
+		ID: id,
 	}
 	for _, path := range request.UpdateMask.Paths {
 		if path == "content" {
@@ -273,12 +271,18 @@ func (s *APIV1Service) UpdateMemo(ctx context.Context, request *v1pb.UpdateMemoR
 				return nil, status.Errorf(codes.PermissionDenied, "disable public memos system setting is enabled")
 			}
 			update.Visibility = &visibility
-		} else if path == "row_status" {
-			rowStatus := convertRowStatusToStore(request.Memo.RowStatus)
+		} else if path == "state" {
+			rowStatus := convertStateToStore(request.Memo.State)
 			update.RowStatus = &rowStatus
 		} else if path == "create_time" {
 			createdTs := request.Memo.CreateTime.AsTime().Unix()
 			update.CreatedTs = &createdTs
+		} else if path == "update_time" {
+			updatedTs := time.Now().Unix()
+			if request.Memo.UpdateTime != nil {
+				updatedTs = request.Memo.UpdateTime.AsTime().Unix()
+			}
+			update.UpdatedTs = &updatedTs
 		} else if path == "display_time" {
 			displayTs := request.Memo.DisplayTime.AsTime().Unix()
 			memoRelatedSetting, err := s.Store.GetWorkspaceMemoRelatedSetting(ctx)
@@ -666,7 +670,7 @@ func convertMemoToWebhookPayload(memo *v1pb.Memo) (*v1pb.WebhookRequestPayload, 
 		return nil, errors.Wrap(err, "invalid memo creator")
 	}
 	return &v1pb.WebhookRequestPayload{
-		CreatorId:  creatorID,
+		Creator:    fmt.Sprintf("%s%d", UserNamePrefix, creatorID),
 		CreateTime: timestamppb.New(time.Now()),
 		Memo:       memo,
 	}, nil
