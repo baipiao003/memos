@@ -53,6 +53,15 @@ service UserService {
     option (google.api.http) = {delete: "/api/v1/{name=users/*}"};
     option (google.api.method_signature) = "name";
   }
+  // ListAllUserStats returns all user stats.
+  rpc ListAllUserStats(ListAllUserStatsRequest) returns (ListAllUserStatsResponse) {
+    option (google.api.http) = {post: "/api/v1/users/-/stats"};
+  }
+  // GetUserStats returns the stats of a user.
+  rpc GetUserStats(GetUserStatsRequest) returns (UserStats) {
+    option (google.api.http) = {get: "/api/v1/{name=users/*}/stats"};
+    option (google.api.method_signature) = "name";
+  }
   // GetUserSetting gets the setting of a user.
   rpc GetUserSetting(GetUserSettingRequest) returns (UserSetting) {
     option (google.api.http) = {get: "/api/v1/{name=users/*}/setting"};
@@ -163,6 +172,49 @@ message DeleteUserRequest {
   // The name of the user.
   // Format: users/{user}
   string name = 1;
+}
+
+message UserStats {
+  // The name of the user.
+  // Format: users/{user}
+  string name = 1;
+
+  // The timestamps when the memos were displayed.
+  // We should return raw data to the client, and let the client format the data with the user's timezone.
+  repeated google.protobuf.Timestamp memo_display_timestamps = 2;
+
+  // The stats of memo types.
+  MemoTypeStats memo_type_stats = 3;
+
+  // The count of tags.
+  // Format: "tag1": 1, "tag2": 2
+  map<string, int32> tag_count = 4;
+
+  message MemoTypeStats {
+    int32 link_count = 1;
+    int32 task_count = 2;
+    int32 code_count = 3;
+  }
+}
+
+message ListAllUserStatsRequest {
+  // Filter is used to filter memos to calculate stats.
+  // Same as `ListMemosRequest.filter`.
+  string filter = 1;
+}
+
+message ListAllUserStatsResponse {
+  repeated UserStats user_stats = 1;
+}
+
+message GetUserStatsRequest {
+  // The name of the user.
+  // Format: users/{user}.
+  string name = 1;
+
+  // Filter is used to filter memos to calculate stats.
+  // Same as `ListMemosRequest.filter`.
+  string filter = 2;
 }
 
 message UserSetting {
