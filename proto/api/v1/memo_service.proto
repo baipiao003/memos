@@ -21,7 +21,7 @@ service MemoService {
   rpc CreateMemo(CreateMemoRequest) returns (Memo) {
     option (google.api.http) = {
       post: "/api/v1/memos"
-      body: "*"
+      body: "memo"
     };
   }
   // ListMemos lists memos with pagination and filter.
@@ -32,11 +32,6 @@ service MemoService {
   rpc GetMemo(GetMemoRequest) returns (Memo) {
     option (google.api.http) = {get: "/api/v1/{name=memos/*}"};
     option (google.api.method_signature) = "name";
-  }
-  // GetMemoByUid gets a memo by uid
-  rpc GetMemoByUid(GetMemoByUidRequest) returns (Memo) {
-    option (google.api.http) = {get: "/api/v1/memos:by-uid/{uid}"};
-    option (google.api.method_signature) = "uid";
   }
   // UpdateMemo updates a memo.
   rpc UpdateMemo(UpdateMemoRequest) returns (Memo) {
@@ -129,13 +124,11 @@ enum Visibility {
 }
 
 message Memo {
-  // The name of the memo.
-  // Format: memos/{id}
-  // id is the system generated id.
-  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  reserved 2;
 
-  // The user defined id of the memo.
-  string uid = 2;
+  // The name of the memo.
+  // Format: memos/{memo}, memo is the user defined id or uuid.
+  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   State state = 3;
 
@@ -192,15 +185,8 @@ message Location {
 }
 
 message CreateMemoRequest {
-  string content = 1;
-
-  Visibility visibility = 2;
-
-  repeated Resource resources = 3;
-
-  repeated MemoRelation relations = 4;
-
-  optional Location location = 5;
+  // The memo to create.
+  Memo memo = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ListMemosRequest {
@@ -226,24 +212,19 @@ message ListMemosResponse {
 
 message GetMemoRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 }
 
-message GetMemoByUidRequest {
-  // The uid of the memo.
-  string uid = 1;
-}
-
 message UpdateMemoRequest {
-  Memo memo = 1;
+  // The memo to update.
+  // The `name` field is required.
+  Memo memo = 1 [(google.api.field_behavior) = REQUIRED];
 
   google.protobuf.FieldMask update_mask = 2;
 }
 
 message DeleteMemoRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 }
 
@@ -265,7 +246,6 @@ message DeleteMemoTagRequest {
 
 message SetMemoResourcesRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 
   repeated Resource resources = 2;
@@ -273,7 +253,6 @@ message SetMemoResourcesRequest {
 
 message ListMemoResourcesRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 }
 
@@ -283,7 +262,6 @@ message ListMemoResourcesResponse {
 
 message SetMemoRelationsRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 
   repeated MemoRelation relations = 2;
@@ -291,7 +269,6 @@ message SetMemoRelationsRequest {
 
 message ListMemoRelationsRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 }
 
@@ -301,15 +278,14 @@ message ListMemoRelationsResponse {
 
 message CreateMemoCommentRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 
-  CreateMemoRequest comment = 2;
+  // The comment to create.
+  Memo comment = 2;
 }
 
 message ListMemoCommentsRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 }
 
@@ -319,7 +295,6 @@ message ListMemoCommentsResponse {
 
 message ListMemoReactionsRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 }
 
@@ -329,7 +304,6 @@ message ListMemoReactionsResponse {
 
 message UpsertMemoReactionRequest {
   // The name of the memo.
-  // Format: memos/{id}
   string name = 1;
 
   Reaction reaction = 2;
