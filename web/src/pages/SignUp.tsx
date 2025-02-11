@@ -10,22 +10,17 @@ import LocaleSelect from "@/components/LocaleSelect";
 import { authServiceClient } from "@/grpcweb";
 import useLoading from "@/hooks/useLoading";
 import useNavigateTo from "@/hooks/useNavigateTo";
-import { useUserStore, useWorkspaceSettingStore } from "@/store/v1";
 import { workspaceStore } from "@/store/v2";
-import { WorkspaceGeneralSetting } from "@/types/proto/api/v1/workspace_setting_service";
-import { WorkspaceSettingKey } from "@/types/proto/store/workspace_setting";
+import { initialUserStore } from "@/store/v2/user";
 import { useTranslate } from "@/utils/i18n";
 
 const SignUp = observer(() => {
   const t = useTranslate();
   const navigateTo = useNavigateTo();
-  const workspaceSettingStore = useWorkspaceSettingStore();
-  const userStore = useUserStore();
   const actionBtnLoadingState = useLoading(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const workspaceGeneralSetting =
-    workspaceSettingStore.getWorkspaceSettingByKey(WorkspaceSettingKey.GENERAL).generalSetting || WorkspaceGeneralSetting.fromPartial({});
+  const workspaceGeneralSetting = workspaceStore.state.generalSetting;
 
   const handleUsernameInputChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value as string;
@@ -62,7 +57,7 @@ const SignUp = observer(() => {
     try {
       actionBtnLoadingState.setLoading();
       await authServiceClient.signUp({ username, password });
-      await userStore.fetchCurrentUser();
+      await initialUserStore();
       navigateTo("/");
     } catch (error: any) {
       console.error(error);
