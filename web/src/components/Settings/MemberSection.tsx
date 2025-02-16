@@ -12,16 +12,6 @@ import { User, User_Role } from "@/types/proto/api/v1/user_service";
 import { useTranslate } from "@/utils/i18n";
 import showChangeMemberPasswordDialog from "../ChangeMemberPasswordDialog";
 
-const stringifyUserRole = (role: User_Role) => {
-  if (role === User_Role.HOST) {
-    return "Host";
-  } else if (role === User_Role.ADMIN) {
-    return "Admin";
-  } else {
-    return "User";
-  }
-};
-
 interface LocalState {
   creatingUser: User;
 }
@@ -46,6 +36,16 @@ const MemberSection = () => {
   const fetchUsers = async () => {
     const users = await userStore.fetchUsers();
     setUsers(users);
+  };
+
+  const stringifyUserRole = (role: User_Role) => {
+    if (role === User_Role.HOST) {
+      return "Host";
+    } else if (role === User_Role.ADMIN) {
+      return t("setting.member-section.admin");
+    } else {
+      return t("setting.member-section.user");
+    }
   };
 
   const handleUsernameInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,8 +170,8 @@ const MemberSection = () => {
         <div className="flex flex-col justify-start items-start gap-1">
           <span>{t("common.role")}</span>
           <RadioGroup orientation="horizontal" defaultValue={User_Role.USER} onChange={handleUserRoleInputChange}>
-            <Radio value={User_Role.USER} label="User" />
-            <Radio value={User_Role.ADMIN} label="Admin" />
+            <Radio value={User_Role.USER} label={t("setting.member-section.user")} />
+            <Radio value={User_Role.ADMIN} label={t("setting.member-section.admin")} />
           </RadioGroup>
         </div>
         <div className="mt-2">
